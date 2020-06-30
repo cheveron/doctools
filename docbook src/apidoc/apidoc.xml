@@ -1,0 +1,2751 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book version="5.1" xmlns="http://docbook.org/ns/docbook"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:xila="http://www.w3.org/2001/XInclude/local-attributes"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:trans="http://docbook.org/ns/transclusion"
+      xmlns:svg="http://www.w3.org/2000/svg"
+      xmlns:m="http://www.w3.org/1998/Math/MathML"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      xmlns:db="http://docbook.org/ns/docbook">
+  <info>
+    <title>OpenAPI Developer Portals on a Shoestring</title>
+
+    <author>
+      <personname><firstname>Andrew</firstname><surname>Owen</surname></personname>
+    </author>
+  </info>
+
+  <preface>
+    <title>Preface</title>
+
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="portal.png"/>
+      </imageobject>
+    </mediaobject>
+
+    <para>This guide enables you to create a fully featured dev portal for
+    your Swagger or OpenAPI 3.0 content without spending a dime.</para>
+
+    <para>It was produced in <emphasis>DocBook 5</emphasis>
+    (<uri>https://docbook.org/</uri>) using <emphasis>XMLmind XML Editor
+    Personal Edition</emphasis>
+    (<uri>https://www.xmlmind.com/xmleditor/download.shtml</uri>) and
+    <emphasis>AsciiDoc fopub</emphasis>
+    (<uri>https://github.com/asciidoctor/asciidoctor-fopub</uri>).</para>
+
+    <para>Copyright © 2020 Andrew Owen.</para>
+
+    <para>This work is licensed under a Creative Commons
+    Attribution-NonCommercial-NoDerivatives 4.0 International license
+    (<uri>https://creativecommons.org/licenses/by-nc-nd/4.0/</uri>).</para>
+  </preface>
+
+  <part>
+    <title>Backend</title>
+
+    <partintro>
+      <para>A dev portal is just a website that presents API docs to
+      developers. It can be as simple as a static web page or as complex as
+      you want to make it. In this guide, we'll make use of the following
+      back-end technologies:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Static Site Generators</para>
+        </listitem>
+
+        <listitem>
+          <para>Source control</para>
+        </listitem>
+
+        <listitem>
+          <para>Containerization</para>
+        </listitem>
+
+        <listitem>
+          <para>Automation</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>In addition you will inevitably spend a fair amount of time using
+      a browser. For better or worse, <emphasis>Chrome</emphasis> is the new
+      defacto standard.</para>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="workflow.png"/>
+        </imageobject>
+      </mediaobject>
+    </partintro>
+
+    <chapter>
+      <title>Static Site Generators</title>
+
+      <section>
+        <title>Hugo</title>
+
+        <para>Hugo is a type of web server known as a static site generator.
+        It is lightweight and fast and can serve dynamic and static content.
+        You can test content locally before deploying it. For OpenAPI content
+        we will use the command line version of ReDoc to convert Swagger JSON
+        files to a static HTML page that will be served by Hugo.</para>
+
+        <section>
+          <title>Install CLI tools (macOS)</title>
+
+          <orderedlist>
+            <listitem>
+              <para><emphasis>Homebrew</emphasis> is a package manager. From
+              the <emphasis>Terminal</emphasis>, enter <code>/usr/bin/ruby -e
+              "$(curl -fsSL
+              https://raw.githubusercontent.com/Homebrew/install/master/install)"</code></para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis>Git</emphasis> provides source control. From the
+              <emphasis>Terminal</emphasis>, enter <code>git</code> and follow
+              the instructions to install <emphasis>Xcode</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis>Hugo</emphasis> is a static site generator. From
+              the <emphasis>Terminal</emphasis>, enter <code>brew install
+              hugo</code></para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis>NPM</emphasis> is a package manager for
+              <emphasis>JavaScript</emphasis>. From the
+              <emphasis>Terminal</emphasis>, enter <code>brew install
+              nodejs</code></para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis>ReDoc</emphasis> renders an OpenAPI file into a
+              static HTML page. From the <emphasis>Terminal</emphasis>, enter
+              <code>npm install -g redoc-cli@0.9.8</code></para>
+
+              <para>Ensure you are using version 0.9.8 or later:
+              <code>redoc-cli --version</code></para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis>Swagger2PDF</emphasis> converts an OpenAPI JSON
+              file into a static PDF document. From the
+              <emphasis>Terminal</emphasis>, enter <code>npm install
+              swagger-spec-to-pdf</code></para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Install CLI tools (Windows)</title>
+
+          <section>
+            <title>Requirements</title>
+
+            <itemizedlist>
+              <listitem>
+                <para>Powershell 3 (or later):
+                <uri>https://www.microsoft.com/en-us/download/details.aspx?id=34595</uri></para>
+
+                <note>
+                  <para>Powershell 5 is already installed in Windows
+                  10.</para>
+                </note>
+              </listitem>
+
+              <listitem>
+                <para>.NET framework 4.5 (or later):
+                <uri>https://www.microsoft.com/net/download</uri></para>
+              </listitem>
+            </itemizedlist>
+          </section>
+
+          <section>
+            <title>Instructions</title>
+
+            <orderedlist>
+              <listitem>
+                <para>Download and install <emphasis>Scoop</emphasis>:
+                <uri>https://scoop.sh</uri></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>Git</emphasis> provides source control. From
+                <emphasis>PowerShell</emphasis>, enter <code>scoop install
+                git</code></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>Hugo</emphasis> is a static site generator.
+                From <emphasis>PowerShell</emphasis>, enter <code>scoop
+                install hugo</code></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>NPM</emphasis> is a package manager for
+                <emphasis>JavaScript</emphasis>. From
+                <emphasis>PowerShell</emphasis>, enter <code>scoop install
+                nodejs</code></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>ReDoc</emphasis> renders an OpenAPI file into
+                a static HTML page. From <emphasis>PowerShell</emphasis>,
+                enter <code>npm install -g redoc-cli@0.9.8</code></para>
+
+                <para>Ensure you are using version 0.9.8 or later:
+                <code>redoc-cli --version</code></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>Swagger2PDF</emphasis> converts an OpenAPI
+                JSON file into a static PDF document. From the
+                <emphasis>PowerShell</emphasis>, enter <code>npm install
+                swagger-spec-to-pdf</code></para>
+              </listitem>
+
+              <listitem>
+                <para><emphasis>cURL</emphasis> is a command line data
+                transfer tool. From <emphasis>PowerShell</emphasis>, enter
+                <code>scoop install curl </code></para>
+              </listitem>
+            </orderedlist>
+          </section>
+        </section>
+
+        <section>
+          <title>Test a local copy of the dev portal</title>
+
+          <para>Navigate to the folder where you have cloned the Git
+          repository.</para>
+
+          <orderedlist>
+            <listitem>
+              <para>From the command line, enter <code>hugo
+              server</code>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Copy the URL from the console output and paste it into the
+              <emphasis>Chrome</emphasis> browser.</para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Add Google Analytics to a static HTML page</title>
+
+          <para>Paste the following text after the <code>&lt;head&gt;</code>
+          tag:</para>
+
+          <programlisting>&lt;!-- Global site tag (gtag.js) - Google Analytics --&gt;
+&lt;script async src="https://www.googletagmanager.com/gtag/js?id=<emphasis>&lt;yourID&gt;</emphasis>"&gt;&lt;/script&gt;</programlisting>
+        </section>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Source control</title>
+
+      <section>
+        <title>Git</title>
+
+        <para>If you are generating comments from code, you will be working
+        directly in the software repository. Typically this will be a Git
+        repository. You should familiarize yourself with the processes for
+        creating branches, creating pull requests, resolving conflicts and
+        merging changes. There are a number of commercial hosting options
+        including Github, GitLab and Bitbucket. Here we'll look at
+        Bitbucket.</para>
+
+        <section>
+          <title>Get the URL from Bitbucket</title>
+
+          <orderedlist>
+            <listitem>
+              <para>In <emphasis>Chrome</emphasis>, navigate to the required
+              repository.</para>
+            </listitem>
+
+            <listitem>
+              <para>In the left icon menu, click <emphasis
+              role="bold">Clone</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Copy the <emphasis role="bold">URL</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Clone the repository and create a local branch</title>
+
+          <orderedlist>
+            <listitem>
+              <para>Open <emphasis>PowerShell</emphasis> /
+              <emphasis>Terminal</emphasis> and navigate to where your local
+              repository folder. Example:
+              <filename>~/development/</filename></para>
+            </listitem>
+
+            <listitem>
+              <para>Enter <code>git clone</code> and paste the path you copied
+              from <emphasis>Chrome</emphasis>. This creates a local copy of
+              the repository.</para>
+            </listitem>
+
+            <listitem>
+              <para>In <emphasis>Visual Studio Code</emphasis>, open the
+              repository's folder.</para>
+            </listitem>
+
+            <listitem>
+              <para>In the lower left corner of the window, click <emphasis
+              role="bold">Branch</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter a name in the box
+              (<code>feature/apidocs-</code><emphasis><code>&lt;api class
+              name&gt;</code></emphasis>) and select the branch to base it on.
+              Example: <code>development</code>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para>You can now make your changes.</para>
+        </section>
+
+        <section>
+          <title>Publish changes</title>
+
+          <orderedlist>
+            <listitem>
+              <para>In <emphasis>Visual Studio Code</emphasis>, in the left
+              icon menu, click <emphasis role="bold">Source
+              Control</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter a short description of why you made the changes in
+              the box.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click the <emphasis role="bold">Commit</emphasis> (tick)
+              icon. If prompted to configure <emphasis>Visual Studio
+              Code</emphasis> to automatically stage changes, you should do
+              so.</para>
+            </listitem>
+
+            <listitem>
+              <para>In the lower left corner of the window, click <emphasis
+              role="bold">Publish Changes</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Create a pull request</title>
+
+          <orderedlist>
+            <listitem>
+              <para>In <emphasis>Chrome</emphasis> navigate to the Bitbucket
+              dashboard.</para>
+            </listitem>
+
+            <listitem>
+              <para>From the <emphasis role="bold">Repositories</emphasis>
+              menu, select the repository you are working with.</para>
+            </listitem>
+
+            <listitem>
+              <para>From the left icon menu, click <emphasis
+              role="bold">Create pull request</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Select your local repository from the <emphasis
+              role="bold">Source</emphasis> list.</para>
+            </listitem>
+
+            <listitem>
+              <para>Confirm the <emphasis role="bold">Destination</emphasis>
+              repository (typically, <emphasis
+              role="bold">development</emphasis>) and click <emphasis
+              role="bold">Continue</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter a <emphasis role="bold">Description</emphasis>. This
+              should contain any additional explanation for the change.</para>
+            </listitem>
+
+            <listitem>
+              <para>Attach a copy of the <emphasis>ReDoc</emphasis>
+              <filename>HTML</filename> file.</para>
+            </listitem>
+
+            <listitem>
+              <para>Select <emphasis role="bold">Reviewers</emphasis>.
+              Typically, this is pre-populated. You can start typing a name to
+              find a user. Ensure the product owner is included.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Create</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para>You will receive email notifications when the status of the
+          pull request changes. Example: When the change is approved.</para>
+        </section>
+
+        <section>
+          <title>Resolve conflicts</title>
+
+          <orderedlist>
+            <listitem>
+              <para>In your local branch: <code>git pull origin
+              master</code></para>
+            </listitem>
+
+            <listitem>
+              <para>Merge incoming code changes while retaining doc
+              changes.</para>
+            </listitem>
+
+            <listitem>
+              <para><code>git commit -am "<emphasis>&lt;your commit
+              message&gt;</emphasis>"</code></para>
+            </listitem>
+
+            <listitem>
+              <para><code>git push</code></para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Merge changes</title>
+
+          <para>In <emphasis>Chrome</emphasis>, navigate to the pull request
+          and click <emphasis role="bold">Merge</emphasis>.</para>
+        </section>
+
+        <section>
+          <title>Delete branch</title>
+
+          <orderedlist>
+            <listitem>
+              <para>After the change is successfully merged, from the left
+              icon menu, click <emphasis
+              role="bold">Branches</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Locate the branch you were working in and from the
+              <emphasis role="bold">Actions</emphasis> menu, select <emphasis
+              role="bold">Delete branch</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Delete</emphasis> to confirm
+              your action.</para>
+            </listitem>
+          </orderedlist>
+        </section>
+
+        <section>
+          <title>Edit UI text in Bitbucket</title>
+
+          <para>While not directly related to APIs, you may on occasion have
+          need to modify UI text contained in a file in a Git repository
+          stored in Bitbucket. You must have a Bitbucket account to edit the
+          files.</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Navigate to the file in Bitbucket.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Edit</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Make your changes.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Commit</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>(Optional) Enter a title in the <emphasis
+              role="bold">Commit message</emphasis> box.</para>
+            </listitem>
+
+            <listitem>
+              <para>Select the <emphasis role="bold">Create a pull request for
+              this change</emphasis> check box.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Commit</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>(Optional) Enter a <emphasis role="bold">Branch
+              name</emphasis>. Example: <code>feature/uitext</code></para>
+            </listitem>
+
+            <listitem>
+              <para>Click <emphasis role="bold">Create pull
+              request</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter a <emphasis
+              role="bold">Description</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para><emphasis role="bold">Click Create</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+
+          <para>When your pull request has been reviewed and there has been at
+          least one successful build, providing there are no merge conflicts,
+          you can merge your change.</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Navigate to the pull requests.</para>
+            </listitem>
+
+            <listitem>
+              <para>Locate your pull request and click its hyperlink.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click Merge.</para>
+            </listitem>
+          </orderedlist>
+
+          <para>If the merge was successful, you should now delete your
+          branch.</para>
+
+          <orderedlist>
+            <listitem>
+              <para>Navigate to the branches.</para>
+            </listitem>
+
+            <listitem>
+              <para>Click your branch's <emphasis
+              role="bold">Actions</emphasis> button and select <emphasis
+              role="bold">Delete branch</emphasis>, then click <emphasis
+              role="bold">Delete</emphasis>.</para>
+            </listitem>
+          </orderedlist>
+        </section>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Issue tracking</title>
+
+      <section>
+        <title>Track documentation tasks in Jira</title>
+
+        <itemizedlist>
+          <listitem>
+            <para>Standalone documentation tasks should have the issue type
+            <emphasis role="bold">Documentation</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Developer tasks that require documentation should have the
+            label <emphasis role="bold">Documentation</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Documentation should be part of the <emphasis>definition of
+            done</emphasis>.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Containerization</title>
+
+      <section>
+        <title>Install Docker</title>
+
+        <para>You should deploy your dev portal in a Docker container. You can
+        try it locally before you build your automation toolchain with
+        <emphasis>Docker Desktop</emphasis>:
+        <uri>https://www.docker.com/products/docker-desktop</uri>.</para>
+
+        <para>After installation, you can run Docker images locally.
+        Example:</para>
+
+        <programlisting>docker run -d --name rabbitmq -p 15672:15672 -p 5672:5672 bitnami/rabbitmq:latest</programlisting>
+      </section>
+
+      <section>
+        <title>Create a Dockerfile for Hugo</title>
+
+        <para>The easiest way to deploy the Hugo static site is in a Docker
+        image, as defined by a Dockerfile.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><code>FROM</code> defines the base image (in the example
+            Alpine, a lightweight Linux distribution).</para>
+          </listitem>
+
+          <listitem>
+            <para><code>COPY</code> copies files and folders to the Docker
+            image.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>ARG</code> specifies arguments for the Docker build
+            command.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>RUN</code> executes commands.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>EXPOSE</code> informs a user about the ports
+            used.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>CMD</code> specifies the component and its arguments
+            to be used by the image.</para>
+          </listitem>
+        </itemizedlist>
+
+        <programlisting>FROM alpine:3.8 as runner
+COPY . .
+ARG HUGO_VERSION=0.57
+RUN apk --no-cache add \
+        curl \
+        git \
+    &amp;&amp; curl -SL https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz \
+        -o /tmp/hugo.tar.gz \
+    &amp;&amp; tar -xzf /tmp/hugo.tar.gz -C /tmp \
+    &amp;&amp; mv /tmp/hugo /usr/local/bin/ \
+    &amp;&amp; apk del curl \
+    &amp;&amp; rm -rf /tmp/*
+ 
+EXPOSE 80
+CMD hugo --renderToDisk=true --watch=true --port=80 --bind="0.0.0.0" --baseURL="${VIRTUAL_HOST}" server
+</programlisting>
+      </section>
+
+      <section>
+        <title>Start Docker on login (macOS)</title>
+
+        <para>Some APIs may require middleware, for example a local
+        <emphasis>RabbitMQ</emphasis> instance. It can be convenient to have
+        Docker start the middleware when you log in. For example:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Open the <emphasis>Automator</emphasis> application.</para>
+          </listitem>
+
+          <listitem>
+            <para>Select the <emphasis role="bold">Application</emphasis> type
+            and click <emphasis role="bold">Choose</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>In the <emphasis role="bold">Actions</emphasis> menu, select
+            <emphasis role="bold">Utilities</emphasis> &gt; <emphasis
+            role="bold">Run Shell Script</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>In the <emphasis role="bold">Run Shell Script</emphasis>
+            section, select <emphasis role="bold">/bin/bash</emphasis> from
+            the <emphasis role="bold">Shell</emphasis> menu.</para>
+          </listitem>
+
+          <listitem>
+            <para>In the box, enter:</para>
+
+            <programlisting>cd /usr/local/bin
+while (! ./docker stats --no-stream ); do
+sleep 10
+done
+./docker start rabbitmq</programlisting>
+          </listitem>
+
+          <listitem>
+            <para>From the <emphasis role="bold">File</emphasis> menu, click
+            <emphasis role="bold">Save</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Navigate to the <filename>Applications</filename> folder (or
+            your user <filename>Applications</filename> folder).</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter <emphasis role="bold">StartRabbit</emphasis> in the
+            <emphasis role="bold">Save As</emphasis> box and click <emphasis
+            role="bold">Save</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Open <emphasis>System Preferences</emphasis> and click
+            <emphasis role="bold">Users &amp; Groups</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Select your user and click <emphasis role="bold">Login
+            Items</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Click <emphasis role="bold">Add</emphasis> (<emphasis
+            role="bold"> + </emphasis>).</para>
+          </listitem>
+
+          <listitem>
+            <para>Navigate to the location where you saved the
+            <emphasis>StartRabbit</emphasis> application and select it.</para>
+          </listitem>
+
+          <listitem>
+            <para>Click <emphasis role="bold">Add</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Close <emphasis>System Preferences</emphasis>.</para>
+          </listitem>
+        </orderedlist>
+
+        <para>The script will run the next time you log in. The path has to be
+        changed because <filename>/usr/local/bin</filename> is not part of the
+        path for startup scripts. The script waits for the Docker daemon to
+        start before starting the rabbitmq container. It does this by querying
+        Docker until it gets a response. A spinning cog is displayed in the
+        right menu while the script is running.</para>
+      </section>
+
+      <section>
+        <title>Kubernetes</title>
+
+        <para>If you are deploying more than one Docker instance, you need
+        <emphasis>Kubernetes</emphasis>. You can learn more here:
+        <uri>https://kubernetes.io/</uri></para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Automation</title>
+
+      <section>
+        <title>Jenkins</title>
+
+        <para>You should automate your deployments so when your code changes,
+        your API docs are updated. You can learn more about
+        <emphasis>Jenkins</emphasis> here:
+        <uri>https://jenkins.io/</uri></para>
+      </section>
+    </chapter>
+  </part>
+
+  <part>
+    <title>Tools</title>
+
+    <chapter>
+      <title>IDE</title>
+
+      <section>
+        <title>Visual Studio Code</title>
+
+        <para>If you're using windows and writing API docs directly in the
+        code, you may be using Visual Studio. If you are not using Windows
+        then then next best thing is Visual Studio Code
+        (<uri>https://code.visualstudio.com/</uri>).</para>
+
+        <para>Before you set up your dev environment, ensure you have
+        installed the CLI tools.</para>
+
+        <section>
+          <title>Set up a .NET dev environment</title>
+
+          <orderedlist>
+            <listitem>
+              <para>Download and install the <emphasis>Visual Studio
+              Code</emphasis> editor
+              (<uri>https://code.visualstudio.com/</uri>).</para>
+            </listitem>
+
+            <listitem>
+              <para>Download and install the <emphasis>.NET Core
+              SDK</emphasis>
+              (<uri>https://dotnet.microsoft.com/download</uri>).</para>
+            </listitem>
+
+            <listitem>
+              <para>Create a folder called <filename>development</filename>
+              where you want to store your local repositories.</para>
+            </listitem>
+
+            <listitem>
+              <para>In <emphasis>BitBucket Server</emphasis> (Stash) go to the
+              repository you want to work with and click the clone icon from
+              the left toolbar.</para>
+            </listitem>
+
+            <listitem>
+              <para>Copy the HTTP address.</para>
+            </listitem>
+
+            <listitem>
+              <para>In the <emphasis>PowerShell / Terminal</emphasis>,
+              navigate to the <filename>development</filename> folder.</para>
+            </listitem>
+
+            <listitem>
+              <para>Enter <code>git clone</code> and paste the HTTP address to
+              complete the line.</para>
+            </listitem>
+          </orderedlist>
+
+          <section>
+            <title>Build the OpenAPI 2.0 (Swagger) JSON file</title>
+
+            <para>This assumes you have a working .NET dev environment and
+            have correctly configured Swashbuckle:</para>
+
+            <orderedlist>
+              <listitem>
+                <para>In <emphasis>PowerShell</emphasis> /
+                <emphasis>Terminal</emphasis>, navigate to the
+                <filename>src</filename> folder in your local
+                repository.</para>
+              </listitem>
+
+              <listitem>
+                <para>Enter <code>dotnet build</code>.</para>
+              </listitem>
+
+              <listitem>
+                <para>Navigate to the folder where the DLL was built and enter
+                <code>dotnet run</code>.</para>
+              </listitem>
+
+              <listitem>
+                <para>In <emphasis>Chrome</emphasis>, navigate to the URL
+                shown in the build output. Example:
+                <uri>http://127.0.0.1:5000</uri>.</para>
+              </listitem>
+
+              <listitem>
+                <para>Click the <uri>/swagger/v1/swagger.json</uri> link to
+                download the JSON file.</para>
+              </listitem>
+            </orderedlist>
+          </section>
+        </section>
+
+        <section>
+          <title>Plug-ins</title>
+
+          <para>Some recommended plug-ins include:</para>
+
+          <itemizedlist>
+            <listitem>
+              <para>Better TOML by bungcip</para>
+            </listitem>
+
+            <listitem>
+              <para>C/C++ by Microsoft</para>
+            </listitem>
+
+            <listitem>
+              <para>C# by Microsoft</para>
+            </listitem>
+
+            <listitem>
+              <para>Code Spell Checker by Street Side Software</para>
+            </listitem>
+
+            <listitem>
+              <para>GitLens by Eric Amodio</para>
+            </listitem>
+
+            <listitem>
+              <para>Markdown Preview Enhanced by Yiyi Wang</para>
+            </listitem>
+
+            <listitem>
+              <para>Prettier - Code formatter by Esben Petersen</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+      </section>
+
+      <section>
+        <title>Preview API doc changes</title>
+
+        <section>
+          <title>Requirements</title>
+
+          <itemizedlist>
+            <listitem>
+              <para>You can create tasks to automate processes in
+              <emphasis>Visual Studio Code</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>Each repository requires its own set of tasks.</para>
+            </listitem>
+
+            <listitem>
+              <para>You must add <filename>.vscode</filename>/ to the
+              <filename>.gitignore</filename> file to any repository you
+              intend to use tasks with.</para>
+            </listitem>
+
+            <listitem>
+              <para>Separate scripts are required for macOS and
+              Windows.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+
+        <section>
+          <title>Convert Swagger JSON to ReDoc HTML</title>
+
+          <para>Enter: <code>redoc-cli bundle
+          <emphasis>&lt;filename&gt;</emphasis>.json</code>.</para>
+        </section>
+
+        <section>
+          <title>Running scripts</title>
+
+          <itemizedlist>
+            <listitem>
+              <para>After you have configured the scripts for a given
+              repository you can run them from Visual Studio Code.</para>
+            </listitem>
+
+            <listitem>
+              <para>Press <emphasis role="bold">command</emphasis>+<emphasis
+              role="bold">shift</emphasis>+<emphasis role="bold">B</emphasis>
+              (macOS) or <emphasis role="bold">ctrl</emphasis>+<emphasis
+              role="bold">shift</emphasis>+<emphasis role="bold">B</emphasis>
+              (Windows) to run the build task.</para>
+            </listitem>
+
+            <listitem>
+              <para>The <emphasis>ReDoc</emphasis> <filename>HTML</filename>
+              file is opened in <emphasis>Chrome</emphasis>.</para>
+            </listitem>
+
+            <listitem>
+              <para>If the server takes a long time to start, the ReDoc task
+              will fail. After the server has started, run the <emphasis
+              role="bold">ReDoc</emphasis> task from the <emphasis
+              role="bold">Terminal</emphasis> menu.</para>
+            </listitem>
+          </itemizedlist>
+        </section>
+
+        <section>
+          <title>Example VScode tasks JSON file</title>
+
+          <para>This file should be placed inside the
+          <filename>.vscode</filename> folder in the Git repository and
+          <emphasis>.vscode</emphasis> added to the
+          <filename>.gitignore</filename> file.</para>
+
+          <section>
+            <title>tasks.json</title>
+
+            <programlisting>{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Dev.Example.Com.Myproject/Devg.Example.Com.Myproject.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Swagger",
+            "type": "shell",
+            "command": ".vscode/swagger.sh",
+            "windows": {
+                "command": ".vscode\\swagger.cmd"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "ReDoc",
+            "type": "shell",
+            "command": ".vscode/redoc.sh",
+            "windows": {
+                "command": ".vscode\\redoc.cmd"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build API Docs",
+            "dependsOn": ["Swagger", "ReDoc"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        }
+    ]
+}</programlisting>
+          </section>
+        </section>
+
+        <section>
+          <title>Example scripts (macOS)</title>
+
+          <section>
+            <title>redoc.cmd</title>
+
+            <programlisting>cd ~/
+rm redoc.json
+rm redoc-static.html
+
+# wait for server to start
+echo waiting for service to start
+sleep 10
+
+curl -o redoc.json http://localhost:62512/swagger/v1/swagger.json
+redoc-cli bundle redoc.json
+open -a "Google Chrome" redoc-static.html</programlisting>
+          </section>
+
+          <section>
+            <title>swagger.cmd</title>
+
+            <programlisting>export CONSUL=http://consul.dev.example.com
+cd src
+dotnet build --source http://dev.example.com/myproject/
+cd Dev.Example.Com.Myproject
+dotnet run --urls=http://localhost:62512</programlisting>
+          </section>
+        </section>
+
+        <section>
+          <title>Example scripts (Windows)</title>
+
+          <section>
+            <title>redoc.cmd</title>
+
+            <programlisting>cd ~/
+del redoc.json
+del redoc-static.html
+
+# wait for server to start
+echo waiting for service to start
+sleep 10
+
+curl -o redoc.json http://localhost:62512/swagger/v1/swagger.json
+redoc-cli bundle recod.json
+start chrome.exe redoc-static.html</programlisting>
+          </section>
+
+          <section>
+            <title>swagger.cmd</title>
+
+            <programlisting>set CONSUL=http://consul.dev.example.com
+cd src
+dotnet build --source http://dev.example.com/myproject/
+cd Dev.Example.Com.Myproject
+dotnet run --urls=http://localhost:62512</programlisting>
+          </section>
+        </section>
+      </section>
+    </chapter>
+  </part>
+
+  <part>
+    <title>Writing</title>
+
+    <chapter>
+      <title>Swashbuckle</title>
+
+      <section>
+        <title>Autogenerated Swagger</title>
+
+        <para><emphasis>Swashbuckle</emphasis> is a framework that converts
+        code comments into Swagger doc
+        (<uri>https://github.com/domaindrivendev/Swashbuckle</uri>).</para>
+      </section>
+
+      <section>
+        <title>Document API methods with multiple domain models</title>
+
+        <para>Some APIs use domain models to perform more than one task using
+        a single API method.</para>
+
+        <para>Swagger shows the various domain models as different options in
+        the Request Body Schema. However, it always shows the payload for the
+        first domain model, regardless of the domain model selected.</para>
+
+        <para>For these API methods, the schema should be documented in a
+        separate HTML page with a relative link, served by the static site
+        generator.</para>
+
+        <para>Documentation for these API methods is declared in a private
+        class as follows:</para>
+
+        <programlisting>postPath.Post.Summary = "Short name";
+postPath.Post.Description = "Long description";</programlisting>
+
+        <para>The string must be contained on a single line. If you need to
+        insert a carriage return you must use the HTML
+        <code>&lt;br/&gt;</code> tag.</para>
+
+        <para>The long description should contain the following text:</para>
+
+        <note>
+          <para>The request body schema shown applies only to the first listed
+          command.</para>
+        </note>
+
+        <para>This should be followed by a relative link to a markdown page
+        describing the various commands.</para>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Create API docs in VS Code</title>
+
+      <para>With Swashbuckle, API documentation is created as comments in the
+      C♯ source code (<filename>.cs</filename> files). These comments are
+      automatically converted to OpenAPI 2.0 (<emphasis>Swagger</emphasis>)
+      docs when the application is built. Most content can be written in
+      markdown.</para>
+
+      <section>
+        <title>Tag API docs in the code</title>
+
+        <para>To make it clear in the code that the comments will be public
+        facing, you can use XML comment format tags around the other
+        comments:</para>
+
+        <programlisting>/// &lt;!--apiddocs--&gt;
+/// ...
+/// &lt;!--/apiddocs--&gt;</programlisting>
+      </section>
+
+      <section>
+        <title>API group descriptions</title>
+
+        <para>To enable a summary for a group, the Startups.cs file must
+        include the following:</para>
+
+        <programlisting>if (File.Exists(xmlPath))
+{
+    c.IncludeXmlComments(xmlPath, true);
+}</programlisting>
+      </section>
+
+      <section>
+        <title>API methods</title>
+
+        <para>Typically, methods are associated with a particular API.
+        However, some methods are inherited and must be edited separately.
+        Documentation can be added using these tags:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><code>summary</code> (plain text): A short description of
+            the method. If no summary is provided, the API name is
+            used.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>remarks</code>: A description of the method.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>param</code>: A short description of the input
+            parameters.</para>
+          </listitem>
+
+          <listitem>
+            <para><code>response</code>: A short description of the response
+            code.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para><emphasis role="bold">Example</emphasis>:</para>
+
+        <programlisting>/// &lt;!--apidocs--&gt;
+/// &lt;summary&gt;
+/// Find product by SKU.
+/// &lt;/summary&gt;
+/// &lt;remarks&gt;
+/// Find a product where the `sku` is known.
+/// &lt;/remarks&gt;
+/// &lt;param name="sku"&gt;Stock keeping unit.&lt;/param&gt;
+/// &lt;response code="400"&gt;Bad request.&lt;/response&gt;
+/// &lt;!--/apidocs--&gt;
+[SwaggerOperation(Taqs = new[] { "Products" })]
+[HttpGet(Name = GetProductBySkuRoute)]
+...</programlisting>
+      </section>
+
+      <section>
+        <title>Response parameters</title>
+
+        <para>Typically, responses for a given API are grouped in a single
+        file. Documentation can be added using summary and example tags. You
+        can find parameters in a project by searching files for
+        <code>[JsonProperty</code>. The example tags are always converted to a
+        single string so they should only be used with the following
+        types:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>enum (example: DateTimeOffset)</para>
+          </listitem>
+
+          <listitem>
+            <para>GUID (globally unique identifier)</para>
+          </listitem>
+
+          <listitem>
+            <para>string</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Where you need to provide an example for other types, add a
+        carriage return in the last line of the summary, followed by Example:
+        &lt;your example&gt;. Do not use example tags for arrays. If you use
+        an array example in the summary, you must escape the first square
+        brace (\[, ]).</para>
+
+        <para><emphasis role="bold">Example</emphasis>:</para>
+
+        <programlisting>/// &lt;!--apidocs--&gt;
+/// &lt;summary&gt;
+/// Stock keeping unit.
+/// &lt;/summary&gt;
+/// &lt;example&gt;
+/// 013AV_MILK_1L
+/// &lt;/example&gt;
+/// &lt;!--/apidocs--&gt;
+[JsonProperty{required = Required.Always}]
+public string Sku { get; set; }</programlisting>
+      </section>
+
+      <section>
+        <title>Required parameters</title>
+
+        <para>When parameters are required, you can mark the with
+        <code>[Required]</code> but the <filename>.cs</filename> file will
+        need a <code>using System.ComponentModel.DataAnnotations;</code>
+        declaration at the beginning of the file.:</para>
+
+        <note>
+          <para>If there is already a [<code>JsonProperty(Required =
+          Required.DisallowNull)]</code> then do not use
+          <code>[Required]</code>.</para>
+        </note>
+
+        <para><emphasis role="bold">Example</emphasis>:</para>
+
+        <programlisting>...
+/// &lt;!--/apidocs--&gt;
+[Required]
+public bool DeductSavingsFromBasket { get; set; }</programlisting>
+      </section>
+
+      <section>
+        <title>Commenting out comments</title>
+
+        <para>If you need to prevent the comments being converted to XML so
+        that you can see what the method name is in the ReDoc output, you can
+        use XML comment syntax:</para>
+
+        <programlisting>/// &lt;!-- &lt;summary&gt;
+/// Stock keeping unit.
+/// &lt;/summary&gt; --&gt;</programlisting>
+
+        <caution>
+          <para>In XML, certain characters must be escaped or the XML will
+          fail to build from the comments (without warnings). For example,
+          ampersands (<code>&amp;amp;</code>) and angle brackets,
+          (<code>&amp;lt;</code>, <code>&amp;gt;</code>). If you need to use
+          an ampersand with code font style, you must use HTML
+          <code>&lt;code&gt;</code> tags. If you use the markdown backtick
+          (<code>`</code>) the escaped ampersand will not be converted to a
+          single character.</para>
+        </caution>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Markdown</title>
+
+      <para>All tagged comments can contain plain text. Some can also contain
+      markdown. Any that can contain markdown can also contain HTML. However,
+      the way markdown and HTML are rendered will vary depending on the
+      tag.</para>
+
+      <informaltable>
+        <tgroup cols="2">
+          <thead>
+            <row>
+              <entry align="center">Style</entry>
+
+              <entry align="center">Markdown</entry>
+            </row>
+          </thead>
+
+          <tbody>
+            <row>
+              <entry>heading level 1</entry>
+
+              <entry><code># Heading 1</code></entry>
+            </row>
+
+            <row>
+              <entry>heading level 2</entry>
+
+              <entry><code>## Heading 2</code></entry>
+            </row>
+
+            <row>
+              <entry>heading level 3</entry>
+
+              <entry><code>### Heading 3</code></entry>
+            </row>
+
+            <row>
+              <entry>bold</entry>
+
+              <entry><code>__bold__</code></entry>
+            </row>
+
+            <row>
+              <entry>italic</entry>
+
+              <entry><code>_italic_</code></entry>
+            </row>
+
+            <row>
+              <entry>code font</entry>
+
+              <entry><code>`code`</code></entry>
+            </row>
+
+            <row>
+              <entry>ordered list</entry>
+
+              <entry><programlisting>1. item 1
+1. item 2
+   1. item 2.1
+1. item 3</programlisting></entry>
+            </row>
+
+            <row>
+              <entry>itemized list</entry>
+
+              <entry><programlisting>* item 1
+* item 2
+  * item 2.1
+* item 3</programlisting></entry>
+            </row>
+
+            <row>
+              <entry>web link</entry>
+
+              <entry><code>[web link](https://www.example.com)</code></entry>
+            </row>
+
+            <row>
+              <entry>relative link</entry>
+
+              <entry><code>[relative
+              link](../flowcharts/flowchart.md)</code></entry>
+            </row>
+
+            <row>
+              <entry>email link</entry>
+
+              <entry><code>[email
+              link](mailto:api@example.com?subject=API%20doc%20request&amp;amp;body=I%20am20using20the20APINAME20API20and20require20further20documentation.)</code></entry>
+            </row>
+
+            <row>
+              <entry>table with header</entry>
+
+              <entry><programlisting>| Firstname | Lastname | Age |
+| --------- | -------- | --- |
+| Jill      | Smith    | 50  |
+| Eve       | Jackson  | 94  |</programlisting></entry>
+            </row>
+
+            <row>
+              <entry>line break: created by ending a line with a backslash.
+              These must be tagged with an XML comment to alert developers
+              that the backslash is intentional.</entry>
+
+              <entry><programlisting>/// &lt;remarks&gt;Long description.&lt;!--newline--&gt;\
+/// [Request docs](mailto:api@example.com)&lt;/remarks&gt;</programlisting></entry>
+            </row>
+
+            <row>
+              <entry>program listing</entry>
+
+              <entry><programlisting>In &lt;summary&gt; tags, use ```  above and below each code block.
+In &lt;remarks&gt; tags, do not use ```. Ensure all other text runs on from the start and each line ends with &lt;!--newline&gt;\.
+
+The last line before the code block will typically be:
+/// __Example__:&lt;!–newline--&gt;\
+///
+
+Then add the code, starting on the next comment line:
+{
+    "id": "string"
+
+}</programlisting></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </chapter>
+
+    <chapter>
+      <title>Mermaid</title>
+
+      <section>
+        <title>Create charts with Mermaid markdown</title>
+
+        <para>Mermaid (<uri>https://mermaidjs.github.io/</uri>) is a markdown
+        extension that simplifies the creation of charts. You can add a
+        Mermaid extension to themes used by the Hugo static site generator.
+        You can preview the markdown in VScode using the <emphasis>Markdown
+        Preview Enhanced</emphasis> extension.</para>
+
+        <para>Before saving the file you must change <code>```mermaid</code>
+        to <code>{{&lt;mermaid&gt;}}</code> and <code>```</code> to
+        <code>{{&lt;/mermaid&gt;}}</code>.</para>
+
+        <para><emphasis role="bold">Examples</emphasis>:</para>
+
+        <programlisting>```mermaid
+graph TD;
+    A--&gt;B;
+    A--&gt;C;
+    B--&gt;D;
+    C--&gt;D;
+```</programlisting>
+
+        <programlisting>```mermaid
+graph LR;
+    A--&gt;B;
+    A--&gt;C;
+    B--&gt;D;
+    C--&gt;D;
+```</programlisting>
+
+        <programlisting>```mermaid
+sequenceDiagram
+participant User
+participant Mobile App
+participant STS
+participant API
+User-&gt;&gt;Mobile App: 1. Click login link.
+ 
+loop challenge
+Mobile App-&gt;Mobile App: 2. Generate code verifier and code challenge.
+end
+ 
+Mobile App-&gt;&gt;STS: 3. Authorization code request and code challenge to authorize.
+STS-&gt;&gt;User: 4. Redirect to login/authorization prompt.
+User-&gt;&gt;STS: 5. Authenticate and consent
+STS-&gt;&gt;Mobile App: 6. Authorize code.
+Mobile App-&gt;&gt;STS: 7. Authorization code and code verified to OAuth token.
+ 
+loop validate
+STS-&gt;STS: 8. Validate code verifier and challenge.
+end
+ 
+STS-&gt;&gt;User: 9. ID token and access token.
+User-&gt;&gt;API: 10. Request user data with access token.
+API-&gt;&gt;User: 11. Response.
+```</programlisting>
+
+        <programlisting>```mermaid
+gantt
+        dateFormat  YYYY-MM-DD
+        title Adding GANTT diagram functionality to mermaid
+        section A section
+        Completed task            :done,    des1, 2014-01-06,2014-01-08
+        Active task               :active,  des2, 2014-01-09, 3d
+        Future task               :         des3, after des2, 5d
+        Future task2               :         des4, after des3, 5d
+        section Critical tasks
+        Completed task in the critical line :crit, done, 2014-01-06,24h
+        Implement parser and jison          :crit, done, after des1, 2d
+        Create tests for parser             :crit, active, 3d
+        Future task in critical line        :crit, 5d
+        Create tests for renderer           :2d
+        Add to mermaid                      :1d
+```</programlisting>
+      </section>
+    </chapter>
+
+    <chapter>
+      <title>Troubleshooting</title>
+
+      <section>
+        <title>Create a PDF from OpenAPI JSON</title>
+
+        <para>On occasion you may be asked to produce a version of your dev
+        portal as a PDF file. Distilling an interactive website into a PDF is
+        impossible. Most browsers will not even let you print the site in its
+        entirety. However, you can use <emphasis>Swagger2PDF</emphasis> to
+        generate a simple PDF from an OpenAPI JSON file:</para>
+
+        <programlisting>swagger2pdf -s swagger.json</programlisting>
+      </section>
+
+      <section>
+        <title>Ensure new features and changes are documented</title>
+
+        <para>Doc teams typically cover the work of multiple development
+        teams, creating developer and user docs. It is not always possible to
+        attend every scrum meeting and sprint review. To ensure developer and
+        user docs are delivered as close as possible to the sprint in which
+        features are delivered, it is essential that the team receives timely
+        notification.</para>
+
+        <para>There are three ways to do this in
+        <emphasis>Jira</emphasis>:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Create a <emphasis role="bold">Documentation sub
+            task</emphasis> on a ticket.</para>
+          </listitem>
+
+          <listitem>
+            <para>Create a <emphasis role="bold">Documentation task</emphasis>
+            and associate it with a ticket.</para>
+          </listitem>
+
+          <listitem>
+            <para>Add the <emphasis role="bold">Documentation</emphasis> label
+            to a ticket.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>You should configure a doc team kanban board to display tickets
+        that meet any of these criteria. You can then watch a ticket to track
+        its progress. Let your developers know how to create doc
+        tickets:</para>
+
+        <note>
+          <itemizedlist>
+            <listitem>
+              <para>You can request new documentation for existing features by
+              creating a <emphasis role="bold">Documentation</emphasis>
+              task.</para>
+            </listitem>
+
+            <listitem>
+              <para>The doc team will prioritize documentation requests to
+              best meet customer needs.</para>
+            </listitem>
+
+            <listitem>
+              <para>Requests for documentation that are made other than using
+              Jira will be given the lowest priority.</para>
+            </listitem>
+          </itemizedlist>
+        </note>
+      </section>
+
+      <section>
+        <title>Fix a broken API</title>
+
+        <para>Things to try:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Does the start of the <code>.cs</code> file have the
+            following:</para>
+
+            <programlisting>using Swashbuckle.AspNetCore.SwaggerGen;</programlisting>
+          </listitem>
+
+          <listitem>
+            <para>Are there incorrectly declared types?</para>
+
+            <programlisting>Type = "int<emphasis role="bold">eger</emphasis>" / Type = "bool<emphasis
+                role="bold">ean</emphasis>"</programlisting>
+          </listitem>
+
+          <listitem>
+            <para>If the comments are absent from the JSON is the
+            <code>DocumentationFile</code> property set in the
+            <filename>.csproj</filename> file (should be set for debug and
+            release). Example:</para>
+
+            <programlisting>&lt;DocumentationFile&gt;bin\Debug\netcoreapp2.2\Your.ApiGateway.xml&lt;/DocumentationFile&gt;</programlisting>
+          </listitem>
+        </itemizedlist>
+      </section>
+
+      <section>
+        <title>Convert OpenAPI YAML to JSON</title>
+
+        <para>ReDoc requires OpenAPI 3.0 / Swagger 2.0 source in JSON format
+        to create a static HTML page. Typically, auto-generated content, such
+        as that produced by Swashbuckle, is already in JSON format. However,
+        hand edited API schema are typically created in YAML.</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Navigate to <uri>https://editor.swagger.io/</uri>.
+            Alternatively, download the Swagger Editor to use keep the content
+            inside the corporate network
+            (<uri>https://swagger.io/tools/swagger-editor/download/</uri>).</para>
+          </listitem>
+
+          <listitem>
+            <para>Select <emphasis role="bold">File</emphasis> &gt; <emphasis
+            role="bold">Import File</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Fix any critical schema errors.</para>
+          </listitem>
+
+          <listitem>
+            <para>Select <emphasis role="bold">File</emphasis> &gt; <emphasis
+            role="bold">Convert and save as JSON</emphasis>.</para>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>Convert Swagger 2.0 to OpenAPI 3.0 to resolve schema
+        errors</title>
+
+        <para>ReDoc requires schema in OpenAPI 3.0 format. If you provide a
+        Swagger 2.0 JSON file, it will attempt to do the conversion itself,
+        but schema errors may cause the conversion to fail. Ideally you should
+        fix the schema errors. However, if you require a quick approximation
+        of how the API will appear you can try using the
+        <emphasis>Mermade</emphasis> online converter:
+        <uri>https://mermade.org.uk/openapi-converter</uri>.</para>
+      </section>
+
+      <section>
+        <title>Force iFrame link to open in parent window</title>
+
+        <para>ReDoc produces a static HTML page. The easiest way to add it to
+        a Hugo site while keeping the navigation in the header is to use an
+        iFrame. A better approach would be to ingest the page and dynamically
+        recreate the whole thing. But that would require work by an
+        experienced Hugo developer.</para>
+
+        <para>The quick and dirty approach is:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Add <code>&lt;base target="_parent"&gt;</code> in the
+            <code>&lt;head&gt;</code> section of the ReDoc
+            <filename>HTML</filename> file.</para>
+          </listitem>
+
+          <listitem>
+            <para>Put the <filename>HTML</filename> pages in Hugo's
+            <filename>static</filename> folder.</para>
+          </listitem>
+
+          <listitem>
+            <para>Create a markdown page in Hugo's
+            <filename>content</filename> folder:</para>
+
+            <programlisting>---
+---
+&lt;iframe src="../../../markdownfile/" frameborder="0" allowfullscreen style="position:absolute;top:1;left:0;width:100%;height:100%;"&gt;&lt;/iframe&gt;
+</programlisting>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>Prevent API method links going to the wrong place</title>
+
+        <para>In the API docs, clicking a method link in the left pane in
+        ReDoc should take the user to the appropriate method. However, when
+        developers reuse Operation IDs, the link will instead take them to the
+        first instance of that Operation ID. Developers must either use
+        Operation IDs that are unique across the entire API gateway, or use no
+        Operation IDs at all.</para>
+      </section>
+
+      <section>
+        <title>Remove .DS_Store files from a Git repository</title>
+
+        <orderedlist>
+          <listitem>
+            <para>In the shell, navigate to the root of the repository.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enter <code>find . -name .DS_Store -print0 | xargs -0 git rm
+            -f --ignore-unmatch</code>.</para>
+          </listitem>
+
+          <listitem>
+            <para>Commit changes.</para>
+          </listitem>
+        </orderedlist>
+      </section>
+
+      <section>
+        <title>Install Java 8</title>
+
+        <para>Oracle changed the license for JDK 8, effective 16 April 2019.
+        You can still download it from
+        <uri>https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</uri>,
+        but if in doubt, you can use OpenJDK 8 instead
+        (<uri>https://www.azul.com/downloads/zulu/</uri>).</para>
+      </section>
+
+      <section>
+        <title>Run Windows apps on macOS</title>
+
+        <para>Because API doc tools make heavy reliance on UNIX-land command
+        line tools, it may be preferable to use a Mac. However, traditional
+        technical writing tools may be Windows-only, for example MadCap
+        <emphasis>Flare</emphasis>. The easiest way to run Windows programs on
+        a Mac is with <emphasis>Parallels</emphasis>
+        (https://www.parallels.com/).</para>
+      </section>
+
+      <section>
+        <title>Run a local Rabbit MQ</title>
+
+        <para>Some API gateways have RabbitMQ as a build dependency. Because
+        the remote server is not always available, you may need to run a local
+        instance of RabbitMQ. You can use Docker to do this from the command
+        prompt:</para>
+
+        <programlisting>docker run -d --name rabbitmq -p 15672:15672 -p 5672:5672 bitnami/rabbitmq:latest</programlisting>
+
+        <orderedlist>
+          <listitem>
+            <para>Navigate to <uri>http://localhost:15672/</uri> and create a
+            user called <code>rabbituser</code> with the password
+            <code>rabbituser</code> as an administrator.</para>
+          </listitem>
+
+          <listitem>
+            <para>Click the <emphasis role="bold">rabbituser</emphasis> user
+            and in the <emphasis role="bold">Virtual Host</emphasis> section,
+            then click <emphasis role="bold">Set permission</emphasis>.</para>
+          </listitem>
+
+          <listitem>
+            <para>In the source code, locate the
+            <filename>appsettings.Development.json</filename> file and change
+            all instances of <code>guest</code> to
+            <code>rabbituser</code>.</para>
+          </listitem>
+        </orderedlist>
+
+        <para>To restart the service:</para>
+
+        <programlisting>docker start rabbitmq</programlisting>
+
+        <para>To remove an old Rabbit MQ:</para>
+
+        <programlisting>docker system prune -a</programlisting>
+      </section>
+    </chapter>
+  </part>
+
+  <appendix>
+    <title>Style guide</title>
+
+    <section>
+      <title>Style sources</title>
+
+      <para>If you don't already have a technical communications style guide,
+      you should create one. This should be a short document that lists the
+      main style sources for technical terms, general writing and spelling,
+      any deviations you want to make from those guidelines and a list of any
+      domain-specific terminology. I recommend:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Microsoft Writing Style Guide
+          (<uri>https://docs.microsoft.com/en-us/style-guide/</uri>) for
+          technical terms.</para>
+        </listitem>
+
+        <listitem>
+          <para>AP Stylebook (<uri>https://www.apstylebook.com/</uri>) for
+          general writing guidelines.</para>
+        </listitem>
+
+        <listitem>
+          <para>Merriam-Webster (<uri>https://www.merriam-webster.com/</uri>)
+          for spelling.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>I have used the <emphasis>Chicago Manual of Style</emphasis>, but
+      I find its academic style more suited to publications with a long lead
+      time such as you might find in a waterfall development environment. For
+      technical writing in an agile development environment, I find AP's
+      newspaper style is a better fit.</para>
+
+      <para>When writing for an international audience, I use International
+      English (American English). There are many regional variants, but the
+      most popular alternative to International English with a consistent
+      formalized spelling is Hiberno English (<emphasis>-ise</emphasis>
+      endings). If you are writing exclusively for an Australian, British,
+      Irish or New Zealander audience, you can use the <emphasis>Cambridge
+      Dictionary</emphasis> (<uri>https://dictionary.cambridge.org/</uri>).
+      Other regions will typically accept documentation in International
+      English.</para>
+
+      <para>If I could go back in time and prevent the publication of one
+      book, Strunk &amp; White's <emphasis>The Elements of Style</emphasis>
+      would be a strong contender. I disagree with Geoffrey K. Pullum that it
+      is "mostly harmless"
+      (<uri>https://www.chronicle.com/article/50-Years-of-Stupid-Grammar/25497</uri>)
+      because its disciples think that they understand how to write well when
+      often they do not.</para>
+    </section>
+
+    <section>
+      <title>Common errors</title>
+
+      <para>If you're lucky enough to have devs that write docs, don't be too
+      hard on them, but be aware of common errors.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><emphasis role="bold">after</emphasis> (not
+          <emphasis>once</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">and so on</emphasis> (not
+          <emphasis>etc</emphasis>.)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">because</emphasis> (not
+          <emphasis>as</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">center</emphasis> (spelling)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">enable</emphasis> (not
+          <emphasis>allow</emphasis> except when referring to access
+          control)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">enter</emphasis> (not
+          <emphasis>input</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">for example</emphasis> (not
+          <emphasis>e.g.</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">fulfillment</emphasis> (spelling)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">IDs</emphasis> (capitalization)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">is</emphasis>/<emphasis
+          role="bold">are</emphasis> (not <emphasis>will be</emphasis>:
+          passive voice)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">list</emphasis> (not
+          <emphasis>dropdown</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">organization</emphasis>
+          (spelling)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">set up</emphasis> (action)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">that is</emphasis> (not
+          <emphasis>i.e.</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">that</emphasis>/<emphasis
+          role="bold">which</emphasis> (contracting/expadning clauses)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">URL</emphasis> (capitalization)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">user's</emphasis> (apostrophe)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">using</emphasis> (not
+          <emphasis>via</emphasis>)</para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis role="bold">want</emphasis> (not
+          <emphasis>wish</emphasis>/<emphasis>would like</emphasis>)</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Boilerplate text</title>
+
+      <para>One of the limitations of the current generation of API doc tools
+      is that they have little to no support for automated content reuse. For
+      that reason, you should keep a list of standard definitions and valid
+      payload examples. For example:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Address</term>
+
+          <listitem>
+            <para>Use your company's HQ.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Barcode</term>
+
+          <listitem>
+            <para>019000000002 (<emphasis>UPC-A format including check
+            digit</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Brand</term>
+
+          <listitem>
+            <para>Ownbrand (<emphasis>too generic to be registered as a
+            trademark</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Country</term>
+
+          <listitem>
+            <para>USA (<emphasis>ISO 3166-1 alpha-3 format</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>CreditCardNumber</term>
+
+          <listitem>
+            <para>4111111111111111 (<emphasis>Use any CVV, NAME and future
+            EXPIRY DATE. Keep purchase value under $500</emphasis>.
+            <uri>http://testcreditcardnumbers.com/</uri>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Currency</term>
+
+          <listitem>
+            <para>USD
+            (<uri>https://www.iso.org/iso-4217-currency-codes.html</uri>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>DateTimeOffset</term>
+
+          <listitem>
+            <para>2019-11-01T00:00:00-05:00
+            (<uri>https://en.wikipedia.org/wiki/ISO_8601</uri> - <emphasis>use
+            long version to avoid ambiguity</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>DebitCardNumber</term>
+
+          <listitem>
+            <para>6304000000000000 (<emphasis>bank card number with the
+            defunct Laser identifier</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Email</term>
+
+          <listitem>
+            <para>username@example.com (<emphasis>example.com is reserved for
+            examples</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>FirstName</term>
+
+          <listitem>
+            <para>Don't use other terms for <emphasis>first name</emphasis>.
+            In some cultures, the family name precedes the given name.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GUID</term>
+
+          <listitem>
+            <para>01234567-890a-bcde-f012-34567890abcd</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>LastName</term>
+
+          <listitem>
+            <para>Don't use other terms for <emphasis>last name</emphasis>. In
+            some cultures, the family name precedes the given name.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Telephone</term>
+
+          <listitem>
+            <para>+1 202 555 0199 (<emphasis>555 numbers ending 0100-0199 are
+            fictitious</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>URL</term>
+
+          <listitem>
+            <para><uri>www.example.com</uri> (<emphasis>example.com is
+            reserved for documentation</emphasis>)</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+
+    <section>
+      <title>API doc writing tips</title>
+
+      <para>API writing is not the same as traditional technical
+      writing:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Use a terse, factual writing style. Sentence fragments are
+          desirable. Avoid adjectives and adverbs.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide complete information about each API component.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide working code snippets for each method, function, and
+          resource. You don’t need complete examples, but show a common use of
+          that element.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide flow charts (in <emphasis>Mermaid</emphasis>) showing
+          the sequence of the most commonly used methods for common use
+          cases.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide sample programs demonstrating common use cases.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide a <emphasis>Getting Started</emphasis> guide showing
+          how to develop a program for a common use cases.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide performance and tuning information.</para>
+        </listitem>
+
+        <listitem>
+          <para>Provide a contact in case developers have questions or need
+          additional assistance.</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Web API terminology</title>
+
+      <variablelist>
+        <varlistentry>
+          <term>DELETE</term>
+
+          <listitem>
+            <para>Deletes the specified resource..</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GET</term>
+
+          <listitem>
+            <para>Request data from a specified resource.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>HEAD</term>
+
+          <listitem>
+            <para>Almost identical to GET, but without the response
+            body.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>OPTIONS</term>
+
+          <listitem>
+            <para>Describes the communication options for the target
+            resource.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PATCH</term>
+
+          <listitem>
+            <para>Applies partial modifications to a resource.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>POST</term>
+
+          <listitem>
+            <para>Send data to a server to create/update a resource.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PUT</term>
+
+          <listitem>
+            <para>Send data to a server to create/update a resource.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+
+    <section>
+      <title>HTTP response codes</title>
+
+      <para>Swashbuckle auto-populates response codes. Even if you do not add
+      anything to the code beyond the standard description, if you add a
+      period at the end you'll be able to see in the output document which
+      response codes are auto-populated and which have been edited. For more
+      information, see
+      <uri>https://en.wikipedia.org/wiki/List_of_HTTP_status_codes</uri>.</para>
+
+      <section>
+        <title>1xx: information</title>
+
+        <variablelist>
+          <varlistentry>
+            <term>100</term>
+
+            <listitem>
+              <para>Continue.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>101</term>
+
+            <listitem>
+              <para>Switching protocols.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>102</term>
+
+            <listitem>
+              <para>Processing.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>103</term>
+
+            <listitem>
+              <para>Early hints.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+
+      <section>
+        <title>2xx: success</title>
+
+        <variablelist>
+          <varlistentry>
+            <term>200</term>
+
+            <listitem>
+              <para>Success.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>201</term>
+
+            <listitem>
+              <para>Created.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>202</term>
+
+            <listitem>
+              <para>Accepted.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>203</term>
+
+            <listitem>
+              <para>Non-authoritative Information.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>204</term>
+
+            <listitem>
+              <para>No content.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>205</term>
+
+            <listitem>
+              <para>Reset content.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>206</term>
+
+            <listitem>
+              <para>Partial content.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>207</term>
+
+            <listitem>
+              <para>Multi-status.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>208</term>
+
+            <listitem>
+              <para>Already reported.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>226</term>
+
+            <listitem>
+              <para>Instance-manipulations used.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+
+      <section>
+        <title>3xx: redirection</title>
+
+        <variablelist>
+          <varlistentry>
+            <term>300</term>
+
+            <listitem>
+              <para>Multiple choices.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>301</term>
+
+            <listitem>
+              <para>Moved permanently.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>302</term>
+
+            <listitem>
+              <para>Found.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>303</term>
+
+            <listitem>
+              <para>See other.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>304</term>
+
+            <listitem>
+              <para>Not modified.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>305</term>
+
+            <listitem>
+              <para>Use proxy.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>306</term>
+
+            <listitem>
+              <para>Switch proxy.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>307</term>
+
+            <listitem>
+              <para>Temporary redirect.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>308</term>
+
+            <listitem>
+              <para>Permanent redirect.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+
+      <section>
+        <title>4xx: client errors</title>
+
+        <variablelist>
+          <varlistentry>
+            <term>400</term>
+
+            <listitem>
+              <para>Bad request.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>401</term>
+
+            <listitem>
+              <para>Unauthorized.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>402</term>
+
+            <listitem>
+              <para>Payment required.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>403</term>
+
+            <listitem>
+              <para>Forbidden.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>404</term>
+
+            <listitem>
+              <para>Not found.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>405</term>
+
+            <listitem>
+              <para>Method not allowed.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>406</term>
+
+            <listitem>
+              <para>Not acceptable.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>407</term>
+
+            <listitem>
+              <para>Proxy authentication required.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>408</term>
+
+            <listitem>
+              <para>Request timeout.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>409</term>
+
+            <listitem>
+              <para>Conflict.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>410</term>
+
+            <listitem>
+              <para>Gone.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>411</term>
+
+            <listitem>
+              <para>Length required.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>412</term>
+
+            <listitem>
+              <para>Precondition failed.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>413</term>
+
+            <listitem>
+              <para>Payload too large.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>414</term>
+
+            <listitem>
+              <para>URI too long.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>415</term>
+
+            <listitem>
+              <para>Unsupported media type.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>416</term>
+
+            <listitem>
+              <para>Range not satisfiable.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>417</term>
+
+            <listitem>
+              <para>Expectation failed.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>418</term>
+
+            <listitem>
+              <para>I'm a teapot.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>421</term>
+
+            <listitem>
+              <para>Misdirected request.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>422</term>
+
+            <listitem>
+              <para>Unprocessable entity.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>423</term>
+
+            <listitem>
+              <para>Locked.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>424</term>
+
+            <listitem>
+              <para>Failed dependency.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>425</term>
+
+            <listitem>
+              <para>Too early.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>426</term>
+
+            <listitem>
+              <para>Upgrade required.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>428</term>
+
+            <listitem>
+              <para>Precondition required.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>429</term>
+
+            <listitem>
+              <para>Too many requests.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>431</term>
+
+            <listitem>
+              <para>Request header fields too large.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>451</term>
+
+            <listitem>
+              <para>Unavailable for legal reasons.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+
+      <section>
+        <title>5xx: server errors</title>
+
+        <variablelist>
+          <varlistentry>
+            <term>500</term>
+
+            <listitem>
+              <para>Internal server error.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>501</term>
+
+            <listitem>
+              <para>Not implemented.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>502</term>
+
+            <listitem>
+              <para>Bad gateway.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>503</term>
+
+            <listitem>
+              <para>Service unavailable.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>504</term>
+
+            <listitem>
+              <para>Gateway timeout.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>505</term>
+
+            <listitem>
+              <para>HTTP version not supported.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>506</term>
+
+            <listitem>
+              <para>Variant also negotiates.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>507</term>
+
+            <listitem>
+              <para>Insufficient storage.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>508</term>
+
+            <listitem>
+              <para>Loop detected.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>510</term>
+
+            <listitem>
+              <para>Not extended.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+            <term>511</term>
+
+            <listitem>
+              <para>Network authentication required.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+      </section>
+    </section>
+  </appendix>
+</book>
