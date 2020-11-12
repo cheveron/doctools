@@ -2,7 +2,7 @@
 
 <!--
 Convert <H1>s to "Sentence case" in MadCap Flare
-use: saxon -it:main -xsl:sc.xsl
+use: saxon -it:main -xsl:sentence.xsl
 -->
 
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
